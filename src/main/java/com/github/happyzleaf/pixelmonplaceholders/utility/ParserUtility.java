@@ -9,6 +9,8 @@ import com.pixelmonmod.pixelmon.entities.npcs.registry.PokemonDropInformation;
 import com.pixelmonmod.pixelmon.entities.pixelmon.Entity3HasStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.BaseStats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Moveset;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.Evolution;
@@ -483,10 +485,40 @@ public class ParserUtility {
 				case "hiddenpower": {
 					return HiddenPower.getHiddenPowerType(pokemon.stats.ivs);
 				}
+				case "ivtotalsum": {
+					return sumIvs(pokemon.stats.ivs);
+				}
+				case "evtotalsum": {
+					return sumEvs(pokemon.stats.evs);
+				}
+				case "ivtotalpercent": {
+					return String.format("%.2f%%", (float) sumIvs(pokemon.stats.ivs) / (float) getMaxIvs());
+				}
+				case "evtotalpercent"; {
+					return String.format("%.2f%%", (float) sumEvs(pokemon.stats.ivs) / (float) getMaxEvs());
+				}
 			}
 		}
 
 		return parsePokedexInfo(EnumPokemon.getFromNameAnyCase(pokemon.getPokemonName()), values);
+	}
+
+	private static int sumIvs(IVStore ivStore) {
+		return Arrays.stream(ivStore.getArray()).sum();
+	}
+
+	private static int sumEvs(EVsStore eVsStore) {
+		return Arrays.stream(eVsStore.getArray()).sum();
+	}
+
+	private static int getMaxIvs() {
+		IVStore store = new IVStore();
+		store.maximizeIVs();
+		return sumIvs(store);
+	}
+
+	private static int getMaxEvs() {
+		return EVsStore.MAX_TOTAL_EVS;
 	}
 
 	/**
