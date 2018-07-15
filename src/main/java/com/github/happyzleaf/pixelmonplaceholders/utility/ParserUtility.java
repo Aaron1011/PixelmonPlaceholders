@@ -476,6 +476,9 @@ public class ParserUtility {
 					return pokemon.getGrowth().name();
 				case "shiny": //Since 1.3.0
 					return pokemon.getIsShiny();
+				case "texturelocation": {
+					return pokemon.getRealTexture();
+				}
 			}
 		}
 
