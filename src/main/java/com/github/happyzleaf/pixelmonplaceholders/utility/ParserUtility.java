@@ -3,6 +3,7 @@ package com.github.happyzleaf.pixelmonplaceholders.utility;
 import com.github.happyzleaf.pixelmonplaceholders.PPConfig;
 import com.pixelmonmod.pixelmon.api.world.WeatherType;
 import com.pixelmonmod.pixelmon.battles.attacks.AttackBase;
+import com.pixelmonmod.pixelmon.battles.attacks.specialAttacks.basic.HiddenPower;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.DropItemRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.PokemonDropInformation;
 import com.pixelmonmod.pixelmon.entities.pixelmon.Entity3HasStats;
@@ -478,6 +479,9 @@ public class ParserUtility {
 					return pokemon.getIsShiny();
 				case "texturelocation": {
 					return pokemon.getRealTexture();
+				}
+				case "hiddenpower": {
+					return HiddenPower.getHiddenPowerType(pokemon.stats.ivs);
 				}
 			}
 		}
