@@ -9,6 +9,7 @@ import com.pixelmonmod.pixelmon.entities.npcs.registry.DropItemRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.PokemonDropInformation;
 import com.pixelmonmod.pixelmon.entities.pixelmon.Entity3HasStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
+import com.pixelmonmod.pixelmon.entities.pixelmon.EnumSpecialTexture;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.BaseStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
@@ -34,7 +35,7 @@ import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.enums.EnumType;
 import com.pixelmonmod.pixelmon.items.heldItems.HeldItem;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-import de.randombyte.entityparticles.data.EntityParticlesKeys;
+import de.randombyte.entityparticles.plugin.data.EntityParticlesKeys;
 import me.rojo8399.placeholderapi.NoValueException;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -514,14 +515,14 @@ public class ParserUtility {
 				case "evtotalsum":
 					return sumEvs(pokemon.stats.evs);
 				case "ivtotalpercent":
-					return String.format("%.2f%%", (float) sumIvs(pokemon.stats.ivs) / (float) getMaxIvs());
+					return String.format("%.2f%%", ((float) sumIvs(pokemon.stats.ivs) / (float) getMaxIvs()) * 100);
 				case "evtotalpercent":
-					return String.format("%.2f%%", (float) sumEvs(pokemon.stats.evs) / (float) getMaxEvs());
+					return String.format("%.2f%%", ((float) sumEvs(pokemon.stats.evs) / (float) getMaxEvs()) * 100);
 				case "texturelocation":
 					return getSprite(pokemon);
 				case "customtexture":
-				    String custom = pokemon.getSpecialTexture();
-				    if (custom == null) {
+				    EnumSpecialTexture custom = EnumSpecialTexture.fromIndex(pokemon.getSpecialTextureIndex());
+				    if (custom == EnumSpecialTexture.None) {
 				        return "N/A";
                     }
 					return pokemon.getRealTexture();
@@ -530,7 +531,6 @@ public class ParserUtility {
 
 			}
 		}
-
 		return parsePokedexInfo(EnumPokemon.getFromNameAnyCase(pokemon.getPokemonName()), values);
 	}
 
