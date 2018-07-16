@@ -1,6 +1,7 @@
 package com.github.happyzleaf.pixelmonplaceholders.utility;
 
 import com.github.happyzleaf.pixelmonplaceholders.PPConfig;
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
 import com.pixelmonmod.pixelmon.api.world.WeatherType;
 import com.pixelmonmod.pixelmon.battles.attacks.AttackBase;
 import com.pixelmonmod.pixelmon.battles.attacks.specialAttacks.basic.HiddenPower;
@@ -10,6 +11,8 @@ import com.pixelmonmod.pixelmon.entities.npcs.registry.PokemonDropInformation;
 import com.pixelmonmod.pixelmon.entities.pixelmon.Entity3HasStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EnumSpecialTexture;
+import com.pixelmonmod.pixelmon.entities.pixelmon.specs.UnbreedableFlag;
+import com.pixelmonmod.pixelmon.entities.pixelmon.specs.UntradeableFlag;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.BaseStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
@@ -34,6 +37,8 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.types.Leveling
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.enums.EnumType;
 import com.pixelmonmod.pixelmon.items.heldItems.HeldItem;
+import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
+import com.pixelmonmod.pixelmon.storage.PlayerComputerStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import de.randombyte.entityparticles.plugin.data.EntityParticlesKeys;
 import me.rojo8399.placeholderapi.NoValueException;
@@ -528,6 +533,10 @@ public class ParserUtility {
 					return pokemon.getRealTexture();
                 case "aura":
                     return getAuraID(pokemon);
+				case "unbreedable":
+					return ((UnbreedableFlag) PokemonSpec.getSpecForKey("unbreedable")).matches(pokemon);
+				case "untradeable":
+					return ((UntradeableFlag) PokemonSpec.getSpecForKey("untradeable")).matches(pokemon);
 
 			}
 		}
