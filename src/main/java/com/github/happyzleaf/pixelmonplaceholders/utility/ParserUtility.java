@@ -74,7 +74,6 @@ public class ParserUtility {
 	private static HashMap<EnumPokemon, PokemonDropInformation> pokemonDrops;
 	private static Field mainDrop, rareDrop, optDrop1, optDrop2;
 	private static Field friendship, level, type, weather;
-	private static Method getSpriteFromID;
 
 	static {
 		try {
@@ -99,10 +98,7 @@ public class ParserUtility {
 			weather = WeatherCondition.class.getDeclaredField("weather");
 			weather.setAccessible(true);
 
-			getSpriteFromID = RenderTileEntityTradingMachine.class.getDeclaredMethod("getSpriteFromID", int.class, String.class, boolean.class, boolean.class, int.class, int.class);
-			getSpriteFromID.setAccessible(true);
-
-		} catch (IllegalAccessException | NoSuchFieldException | NoSuchMethodException e) {
+		} catch (IllegalAccessException | NoSuchFieldException e) {
 			e.printStackTrace();
 		}
 	}
@@ -551,19 +547,13 @@ public class ParserUtility {
 	}
 
 	private static String getSprite(EntityPixelmon pokemon) {
-		// getSpriteFromId is an instance method, so we create a dummy RenderTileEntityTradingMachine instance
-		RenderTileEntityTradingMachine render = new RenderTileEntityTradingMachine();
 		EnumPokemon enumPokemon = EnumPokemon.getFromNameAnyCase(pokemon.getPokemonName());
 
-		try {
-			return (String) getSpriteFromID.invoke(render, enumPokemon.getNationalPokedexInteger(), pokemon.getPokemonName(), pokemon.getIsShiny(), pokemon.isEgg,
+		return getSpriteFromID(enumPokemon.getNationalPokedexInteger(), pokemon.getPokemonName(), pokemon.getIsShiny(), pokemon.isEgg,
 					pokemon.eggCycles, pokemon.getForm());
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to get sprite id!", e);
-		}
 	}
 
-	// Copied from
+	// Copied from com.pixelmonmod.pixelmon.client.render.tileEntities.RenderTileEntityTradingMachine#getSpriteFromID
 	private static String getSpriteFromID(int nationalPokedexNumber, String pokemonName, boolean isShiny, boolean isEgg, int eggCycles, int variant) {
 		String basePath = "textures/sprites/pokemon/";
 		if (isShiny) {
