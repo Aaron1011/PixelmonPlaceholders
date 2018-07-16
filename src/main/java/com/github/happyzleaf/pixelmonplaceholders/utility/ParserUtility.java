@@ -4,6 +4,7 @@ import com.github.happyzleaf.pixelmonplaceholders.PPConfig;
 import com.pixelmonmod.pixelmon.api.world.WeatherType;
 import com.pixelmonmod.pixelmon.battles.attacks.AttackBase;
 import com.pixelmonmod.pixelmon.battles.attacks.specialAttacks.basic.HiddenPower;
+import com.pixelmonmod.pixelmon.client.render.tileEntities.RenderTileEntityTradingMachine;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.DropItemRegistry;
 import com.pixelmonmod.pixelmon.entities.npcs.registry.PokemonDropInformation;
 import com.pixelmonmod.pixelmon.entities.pixelmon.Entity3HasStats;
@@ -14,24 +15,47 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Moveset;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.Evolution;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.*;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.BiomeCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.ChanceCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.EvoCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.EvoRockCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.FriendshipCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.GenderCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.HeldItemCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.HighAltitudeCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.LevelCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.MoveCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.MoveTypeCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.PartyCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.TimeCondition;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.conditions.WeatherCondition;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.evolution.types.LevelingEvolution;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.enums.EnumType;
 import com.pixelmonmod.pixelmon.items.heldItems.HeldItem;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+import de.randombyte.entityparticles.data.EntityParticlesKeys;
 import me.rojo8399.placeholderapi.NoValueException;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import org.apache.commons.lang3.ArrayUtils;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.Nullable;
 
 /***************************************
  * PixelmonPlaceholders
@@ -44,6 +68,7 @@ public class ParserUtility {
 	private static HashMap<EnumPokemon, PokemonDropInformation> pokemonDrops;
 	private static Field mainDrop, rareDrop, optDrop1, optDrop2;
 	private static Field friendship, level, type, weather;
+	private static Method getSpriteFromID;
 
 	static {
 		try {
@@ -68,7 +93,10 @@ public class ParserUtility {
 			weather = WeatherCondition.class.getDeclaredField("weather");
 			weather.setAccessible(true);
 
-		} catch (IllegalAccessException | NoSuchFieldException e) {
+			getSpriteFromID = RenderTileEntityTradingMachine.class.getDeclaredMethod("getSpriteFromID", int.class, String.class, boolean.class, boolean.class, int.class, int.class);
+			getSpriteFromID.setAccessible(true);
+
+		} catch (IllegalAccessException | NoSuchFieldException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}
 	}
@@ -479,28 +507,84 @@ public class ParserUtility {
 					return pokemon.getGrowth().name();
 				case "shiny": //Since 1.3.0
 					return pokemon.getIsShiny();
-				case "texturelocation": {
-					return pokemon.getRealTexture();
-				}
-				case "hiddenpower": {
+				case "hiddenpower":
 					return HiddenPower.getHiddenPowerType(pokemon.stats.ivs);
-				}
-				case "ivtotalsum": {
+				case "ivtotalsum":
 					return sumIvs(pokemon.stats.ivs);
-				}
-				case "evtotalsum": {
+				case "evtotalsum":
 					return sumEvs(pokemon.stats.evs);
-				}
-				case "ivtotalpercent": {
+				case "ivtotalpercent":
 					return String.format("%.2f%%", (float) sumIvs(pokemon.stats.ivs) / (float) getMaxIvs());
-				}
-				case "evtotalpercent"; {
-					return String.format("%.2f%%", (float) sumEvs(pokemon.stats.ivs) / (float) getMaxEvs());
-				}
+				case "evtotalpercent":
+					return String.format("%.2f%%", (float) sumEvs(pokemon.stats.evs) / (float) getMaxEvs());
+				case "texturelocation":
+					return getSprite(pokemon);
+				case "customtexture":
+				    String custom = pokemon.getSpecialTexture();
+				    if (custom == null) {
+				        return "N/A";
+                    }
+					return pokemon.getRealTexture();
+                case "aura":
+                    return getAuraID(pokemon);
+
 			}
 		}
 
 		return parsePokedexInfo(EnumPokemon.getFromNameAnyCase(pokemon.getPokemonName()), values);
+	}
+
+	private static String getAuraID(EntityPixelmon pokemon) {
+		if (!Sponge.getPluginManager().isLoaded("entity-particles")) {
+			return "N/A";
+		}
+		return ((Entity) pokemon).get(EntityParticlesKeys.PARTICLE_ID).orElse("N/A");
+	}
+
+	private static String getSprite(EntityPixelmon pokemon) {
+		// getSpriteFromId is an instance method, so we create a dummy RenderTileEntityTradingMachine instance
+		RenderTileEntityTradingMachine render = new RenderTileEntityTradingMachine();
+		EnumPokemon enumPokemon = EnumPokemon.getFromNameAnyCase(pokemon.getPokemonName());
+
+		try {
+			return (String) getSpriteFromID.invoke(render, enumPokemon.getNationalPokedexInteger(), pokemon.getPokemonName(), pokemon.getIsShiny(), pokemon.isEgg,
+					pokemon.eggCycles, pokemon.getForm());
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to get sprite id!", e);
+		}
+	}
+
+	// Copied from
+	private static String getSpriteFromID(int nationalPokedexNumber, String pokemonName, boolean isShiny, boolean isEgg, int eggCycles, int variant) {
+		String basePath = "textures/sprites/pokemon/";
+		if (isShiny) {
+			basePath = "textures/sprites/shinypokemon/";
+		} else if (isEgg) {
+			basePath = "textures/sprites/eggs/";
+		}
+
+		if (isEgg) {
+			String eggType = "egg";
+			if (nationalPokedexNumber == 175) {
+				eggType = "togepi";
+			} else if (nationalPokedexNumber == 490) {
+				eggType = "manaphy";
+			}
+
+			if (eggCycles > 10) {
+				return basePath + eggType + "1.png";
+			} else {
+				return eggCycles > 5 ? basePath + eggType + "2.png" : basePath + eggType + "3.png";
+			}
+		} else {
+			Optional<EnumPokemon> optional = EnumPokemon.getFromName(pokemonName);
+			if (optional.isPresent()) {
+				EnumPokemon pokemon = (EnumPokemon)optional.get();
+				return basePath + pokemon.getNationalPokedexNumber() + pokemon.getFormEnum(variant).getSpriteSuffix() + ".png";
+			} else {
+				return basePath + String.format("%03d", nationalPokedexNumber) + ".png";
+			}
+		}
 	}
 
 	private static int sumIvs(IVStore ivStore) {
